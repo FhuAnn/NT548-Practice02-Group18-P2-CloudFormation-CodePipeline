@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template create Nested stack
+
+Parameters:
+  AllowedSSHIP:
+    Description: The IP address allowed to SSH to the public EC2 instances
+    Type: String
+    Default: 0.0.0.0/0 # Change to your user IP address
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: lab02-keypair-group18
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lab02-group18.s3.ap-southeast-1.amazonaws.com/vpc-cfn.yaml
+      TimeoutInMinutes: 10
+
+  NATStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://lab02-group18.s3.ap-southeast-1.amazonaws.com/nat-cfn.yaml
+      TimeoutInMinutes: 10
+
+  RouteTablesStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - VPCStack
+      - NATStack
+    Properties:
+      TemplateURL: https://lab02-group18.s3.ap-southeast-1.amazonaws.com/rt-cfn.yaml
+      TimeoutInMinutes: 10
+
+  SecurityGroupsStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://lab02-group18.s3.ap-southeast-1.amazonaws.com/sg-cfn.yaml
+      TimeoutInMinutes: 10
+      Parameters:
+        AllowedSSHIP: !Ref AllowedSSHIP
+
+  EC2Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - VPCStack
+      - RouteTablesStack
+      - SecurityGroupsStack
+    Properties:
+      TemplateURL: https://lab02-group18.s3.ap-southeast-1.amazonaws.com/ec2-cfn.yaml
+      TimeoutInMinutes: 10
+      Parameters:
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+
+Outputs:
+  PublicInstanceIP:
+    Description: Public IP address of the Public Instance
+    Value: !GetAtt EC2Stack.Outputs.PublicInstanceIP
+
+  PrivateInstancePrivateIP:
+    Description: Private IP address of the Private Instance
+    Value: !GetAtt EC2Stack.Outputs.PrivateInstancePrivateIP

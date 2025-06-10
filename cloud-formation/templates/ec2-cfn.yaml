@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates EC2 instances in public and private subnets
+
+Parameters:
+  KeyName:
+    Description: Name of KeyPair to enable SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: lab02-keypair-group18
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: [t2.micro, t2.small, t2.medium]
+
+Resources:
+  PublicInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: ami-069cb3204f7a90763 # Ubuntu 24.04 AMI in ap-southeast-1
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !ImportValue PublicEC2SecurityGroupId
+          SubnetId: !ImportValue PublicSubnetId
+      Tags:
+        - Key: Name
+          Value: Public Instance
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          mkdir -p /home/ubuntu/.ssh
+          chmod 700 /home/ubuntu/.ssh
+          chown ubuntu:ubuntu /home/ubuntu/.ssh
+
+  PrivateInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      ImageId: ami-069cb3204f7a90763 # Ubuntu 24.04 AMI in ap-southeast-1
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          GroupSet:
+            - !ImportValue PrivateEC2SecurityGroupId
+          SubnetId: !ImportValue PrivateSubnetId
+      Tags:
+        - Key: Name
+          Value: Private Instance
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+
+Outputs:
+  PublicInstanceIP:
+    Description: Public IP address of the Public Instance
+    Value: !GetAtt PublicInstance.PublicIp
+
+  PrivateInstancePrivateIP:
+    Description: Private IP address of the Private Instance
+    Value: !GetAtt PrivateInstance.PrivateIp
