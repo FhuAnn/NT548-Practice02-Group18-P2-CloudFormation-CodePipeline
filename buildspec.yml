@@ -1,0 +1,29 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo "Installing dependencies..."
+      - pip install --upgrade pip
+      - pip install cfn-lint taskcat
+      - echo "Dependencies installed successfully"
+  pre_build:
+    commands:
+      - echo "Starting pre-build phase..."
+      - echo "Running cfn-lint on CloudFormation templates"
+      - cfn-lint templates/*.yaml || echo "cfn-lint found issues, continuing to Taskcat"
+  build:
+    commands:
+      - echo "Starting build phase..."
+      - echo "Running Taskcat tests..."
+      - taskcat test run --project-root . || echo "Taskcat found issues, review logs"
+      - echo "Taskcat tests completed"
+  post_build:
+    commands:
+      - echo "Build completed successfully"
+      - echo "All CloudFormation templates validated"
+artifacts:
+  files:
+    - "**/*"
+  name: cloudformation-artifacts

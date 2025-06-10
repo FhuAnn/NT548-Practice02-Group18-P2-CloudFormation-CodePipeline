@@ -10,7 +10,7 @@
 1. **Clone the Repository**
 
    ```sh
-   git clone https://github.com/tramcandoit/NT548-Lab.git
+   git clone https://github.com/FhuAnn/NT548-Practice02-Group18-P2-CloudFormation-CodePipeline.git
    cd CloudFormation
    ```
 
