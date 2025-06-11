@@ -12,3 +12,4 @@ tests:
     parameters:
       KeyName: lab02-keypair-group18
       AllowedSSHIP: 0.0.0.0/0
+    cleanup: true
