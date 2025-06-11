@@ -1,87 +1,16 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "CodeBuild project for CloudFormation validation"
-
-Parameters:
-  ProjectName:
-    Type: String
-    Default: lab02-cfn-validation
-    Description: Name of the CodeBuild project
-
-  GitHubRepo:
-    Type: String
-    Default: https://github.com/FhuAnn/NT548-Practice02-Group18-P2-CloudFormation-CodePipeline.git
-    Description: GitHub repository URL
-
 Resources:
-  CodeBuildServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: CodeBuildServiceRolePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                  - s3:PutObject
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - cloudformation:*
-                Resource: "*"
-
-  CodeBuildProject:
+  TaskcatBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Ref ProjectName
-      Description: CloudFormation template validation using cfn-lint and taskcat
-      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+      Name: taskcat-build
       Source:
         Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            install:
-              runtime-versions:
-                python: 3.9
-              commands:
-                - echo "Installing dependencies..."
-                - pip install --upgrade pip
-                - pip install cfn-lint taskcat
-            pre_build:
-              commands:
-                - echo "Running cfn-lint validation..."
-                - cfn-lint templates/*.yaml
-            build:
-              commands:
-                - echo "Running Taskcat tests..."
-                - taskcat test run --project-root .
-            post_build:
-              commands:
-                - echo "Validation completed successfully"
-
-Outputs:
-  CodeBuildProjectName:
-    Description: Name of the CodeBuild project
-    Value: !Ref CodeBuildProject
+        BuildSpec: buildspec.yml
+      Environment:
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/standard:7.0
+        ComputeType: BUILD_GENERAL1_SMALL
+        PrivilegedMode: true
+      ServiceRole: arn:aws:iam::072461344223:role/CodeBuildServiceRole
+      Artifacts:
+        Type: CODEPIPELINE

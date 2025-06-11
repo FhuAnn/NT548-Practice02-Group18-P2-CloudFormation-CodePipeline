@@ -1,245 +1,38 @@
-# codepipeline.yaml
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'CodePipeline for automated CloudFormation deployment'
-
-Parameters:
-  RepositoryName:
-    Type: String
-    Default: lab02-cloudformation-repo
-    Description: CodeCommit repository name
-  
-  PipelineName:
-    Type: String
-    Default: lab02-cfn-pipeline
-    Description: Name of the CodePipeline
-  
-  S3BucketName:
-    Type: String
-    Default: lab02-pipeline-artifacts
-    Description: S3 bucket for pipeline artifacts
-
 Resources:
-  # S3 Bucket for Pipeline Artifacts
-  ArtifactsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "${S3BucketName}-${AWS::AccountId}"
-      VersioningConfiguration:
-        Status: Enabled
-
-  # CodePipeline Service Role
-  CodePipelineServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codepipeline.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: CodePipelineServiceRolePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetBucketVersioning
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                  - s3:PutObject
-                Resource:
-                  - !Sub "${ArtifactsBucket}/*"
-                  - !GetAtt ArtifactsBucket.Arn
-              - Effect: Allow
-                Action:
-                  - codecommit:CancelUploadArchive
-                  - codecommit:GetBranch
-                  - codecommit:GetCommit
-                  - codecommit:GetRepository
-                  - codecommit:ListBranches
-                  - codecommit:ListRepositories
-                Resource: !Sub "arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${RepositoryName}"
-              - Effect: Allow
-                Action:
-                  - codebuild:BatchGetBuilds
-                  - codebuild:StartBuild
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateStack
-                  - cloudformation:DeleteStack
-                  - cloudformation:DescribeStacks
-                  - cloudformation:UpdateStack
-                  - cloudformation:CreateChangeSet
-                  - cloudformation:DeleteChangeSet
-                  - cloudformation:DescribeChangeSet
-                  - cloudformation:ExecuteChangeSet
-                  - cloudformation:SetStackPolicy
-                  - cloudformation:ValidateTemplate
-                Resource: '*'
-
-  # CloudFormation Service Role
-  CloudFormationServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: cloudformation.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/PowerUserAccess
-
-  # CodeBuild Project
-  ValidationProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub "${PipelineName}-validation"
-      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            install:
-              runtime-versions:
-                python: 3.9
-              commands:
-                - pip install cfn-lint taskcat
-            pre_build:
-              commands:
-                - echo "Validating CloudFormation templates..."
-                - cfn-lint templates/*.yaml
-            build:
-              commands:
-                - echo "Running Taskcat tests..."
-                - taskcat test run --project-root .
-            post_build:
-              commands:
-                - echo "Validation completed successfully"
-
-  CodeBuildServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: CodeBuildServiceRolePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:GetObjectVersion
-                  - s3:PutObject
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - cloudformation:*
-                Resource: '*'
-
-  # CodePipeline
-  Pipeline:
+  TaskcatPipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Ref PipelineName
-      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      Name: taskcat-pipeline
+      RoleArn: arn:aws:iam::072461344223:role/CodePipelineServiceRole
       ArtifactStore:
         Type: S3
-        Location: !Ref ArtifactsBucket
+        Location: an-ho-bucket
       Stages:
         - Name: Source
           Actions:
-            - Name: SourceAction
+            - Name: Source
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: CodeCommit
-                Version: '1'
+                Provider: CodeStarSourceConnection
+                Version: "1"
               Configuration:
-                RepositoryName: !Ref RepositoryName
+                ConnectionArn: arn:aws:codeconnections:ap-southeast-1:072461344223:connection/c0c2b49c-b351-4b11-93bc-3db614baa298
+                FullRepositoryId: FhuAnn/NT548-Practice02-Group18-P2-CloudFormation-CodePipeline
                 BranchName: main
               OutputArtifacts:
-                - Name: SourceOutput
-
-        - Name: Validate
+                - Name: SourceArtifact
+        - Name: Build
           Actions:
-            - Name: ValidateAction
+            - Name: Build
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
-                Version: '1'
+                Version: "1"
               Configuration:
-                ProjectName: !Ref ValidationProject
+                ProjectName: taskcat-build
               InputArtifacts:
-                - Name: SourceOutput
+                - Name: SourceArtifact
               OutputArtifacts:
-                - Name: ValidatedOutput
-
-        - Name: Deploy
-          Actions:
-            - Name: CreateChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
-              Configuration:
-                ActionMode: CHANGE_SET_REPLACE
-                StackName: lab02-group18-pipeline
-                ChangeSetName: pipeline-changeset
-                TemplatePath: ValidatedOutput::main-cfn.yaml
-                Capabilities: CAPABILITY_IAM
-                RoleArn: !GetAtt CloudFormationServiceRole.Arn
-                ParameterOverrides: |
-                  {
-                    "KeyName": "lab02-keypair-group18",
-                    "AllowedSSHIP": "0.0.0.0/0"
-                  }
-              InputArtifacts:
-                - Name: ValidatedOutput
-              RunOrder: 1
-
-            - Name: ExecuteChangeSet
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: CloudFormation
-                Version: '1'
-              Configuration:
-                ActionMode: CHANGE_SET_EXECUTE
-                StackName: lab02-group18-pipeline
-                ChangeSetName: pipeline-changeset
-              RunOrder: 2
-
-Outputs:
-  PipelineName:
-    Description: Name of the CodePipeline
-    Value: !Ref Pipeline
-  
-  ArtifactsBucket:
-    Description: S3 bucket for pipeline artifacts
-    Value: !Ref ArtifactsBucket
+                - Name: BuildArtifact

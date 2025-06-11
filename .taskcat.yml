@@ -1,16 +1,14 @@
 project:
   name: lab02-cloudformation-validation
-  owner: <your-github-username>
+  owner: FhuAnn
   regions:
     - ap-southeast-1
-  parameters:
-    KeyName: lab02-keypair
-    AllowedSSHIP: 0.0.0.0/0
+
 tests:
   main-stack-test:
     template: main-cfn.yaml
     regions:
       - ap-southeast-1
     parameters:
-      KeyName: lab02-keypair
+      KeyName: lab02-keypair-group18
       AllowedSSHIP: 0.0.0.0/0

@@ -1,29 +1,24 @@
 version: 0.2
+
 phases:
   install:
     runtime-versions:
       python: 3.9
+      docker: 20
     commands:
-      - echo "Installing dependencies..."
       - pip install --upgrade pip
-      - pip install cfn-lint taskcat
-      - echo "Dependencies installed successfully"
-  pre_build:
-    commands:
-      - echo "Starting pre-build phase..."
-      - echo "Running cfn-lint on CloudFormation templates"
-      - cfn-lint templates/*.yaml || echo "cfn-lint found issues, continuing to Taskcat"
+      - pip install --upgrade cfn-lint taskcat
   build:
     commands:
-      - echo "Starting build phase..."
-      - echo "Running Taskcat tests..."
-      - taskcat test run --project-root . || echo "Taskcat found issues, review logs"
-      - echo "Taskcat tests completed"
-  post_build:
-    commands:
-      - echo "Build completed successfully"
-      - echo "All CloudFormation templates validated"
+      - echo "Checking template syntax with cfn-lint"
+      - cfn-lint *.yaml templates/*.yaml
+      - echo "Checking template syntax with taskcat lint"
+      - taskcat lint
+      - echo "Packaging and uploading templates to S3 with taskcat package"
+      - taskcat package --s3-bucket an-03042004-bucket
+      - echo "Running taskcat test run"
+      - taskcat test run
 artifacts:
   files:
-    - "**/*"
-  name: cloudformation-artifacts
+    - '**/*'
+  discard-paths: yes
