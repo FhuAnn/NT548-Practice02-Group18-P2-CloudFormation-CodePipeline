@@ -20,6 +20,10 @@ Resources:
                   - s3:CreateBucket
                   - s3:PutObject
                   - s3:GetObject
+                  - s3:PutBucketTagging
+                  - s3:DeleteObject
+                  - s3:DeleteBucket
+                  - s3:PutBucketPolicy
                   - cloudformation:*
                   - ec2:*
                   - logs:*

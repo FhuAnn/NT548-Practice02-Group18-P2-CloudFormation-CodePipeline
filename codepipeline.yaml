@@ -20,6 +20,7 @@ Resources:
                 ConnectionArn: arn:aws:codeconnections:ap-southeast-1:072461344223:connection/c0c2b49c-b351-4b11-93bc-3db614baa298
                 FullRepositoryId: FhuAnn/NT548-Practice02-Group18-P2-CloudFormation-CodePipeline
                 BranchName: main
+                DetectChanges: true
               OutputArtifacts:
                 - Name: SourceArtifact
         - Name: Build
