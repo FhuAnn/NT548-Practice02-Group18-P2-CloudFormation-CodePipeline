@@ -14,7 +14,7 @@ phases:
       - echo "Checking template syntax with taskcat lint"
       - taskcat lint
       - echo "Packaging and uploading templates to S3 with taskcat package"
-      - taskcat package --s3-bucket an-ho-bucket
+      - taskcat package
       - echo "Running taskcat test run"
       - taskcat test run
 artifacts:
