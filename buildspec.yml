@@ -4,7 +4,6 @@ phases:
   install:
     runtime-versions:
       python: 3.9
-      docker: 20
     commands:
       - pip install --upgrade pip
       - pip install --upgrade cfn-lint taskcat
@@ -15,10 +14,10 @@ phases:
       - echo "Checking template syntax with taskcat lint"
       - taskcat lint
       - echo "Packaging and uploading templates to S3 with taskcat package"
-      - taskcat package --s3-bucket an-03042004-bucket
+      - taskcat package --s3-bucket an-ho-bucket
       - echo "Running taskcat test run"
       - taskcat test run
 artifacts:
   files:
-    - '**/*'
+    - "**/*"
   discard-paths: yes
