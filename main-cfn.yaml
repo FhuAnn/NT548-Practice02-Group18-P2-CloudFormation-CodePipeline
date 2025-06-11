@@ -25,14 +25,14 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://an-03042004-bucket.s3.ap-southeast-1.amazonaws.com/templates/vpc-cfn.yaml
+      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/vpc-cfn.yaml
       TimeoutInMinutes: 10
 
   NATStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: VPCStack
     Properties:
-      TemplateURL: https://an-03042004-bucket.s3.ap-southeast-1.amazonaws.com/templates/nat-cfn.yaml
+      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/nat-cfn.yaml
       TimeoutInMinutes: 10
 
   RouteTablesStack:
@@ -41,14 +41,14 @@ Resources:
       - VPCStack
       - NATStack
     Properties:
-      TemplateURL: https://an-03042004-bucket.s3.ap-southeast-1.amazonaws.com/templates/rt-cfn.yaml
+      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/rt-cfn.yaml
       TimeoutInMinutes: 10
 
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: VPCStack
     Properties:
-      TemplateURL: https://an-03042004-bucket.s3.ap-southeast-1.amazonaws.com/templates/sg-cfn.yaml
+      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/sg-cfn.yaml
       TimeoutInMinutes: 10
       Parameters:
         AllowedSSHIP: !Ref AllowedSSHIP
@@ -60,7 +60,7 @@ Resources:
       - RouteTablesStack
       - SecurityGroupsStack
     Properties:
-      TemplateURL: https://an-03042004-bucket.s3.ap-southeast-1.amazonaws.com/templates/ec2-cfn.yaml
+      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/ec2-cfn.yaml
       TimeoutInMinutes: 10
       Parameters:
         KeyName: !Ref KeyName
