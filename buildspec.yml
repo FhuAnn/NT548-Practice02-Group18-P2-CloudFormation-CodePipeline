@@ -7,7 +7,8 @@ phases:
     commands:
       - pip install --upgrade pip
       - pip install --upgrade cfn-lint taskcat
-      - aws configure set region ap-southeast-1
+      - aws configure set region us-east-1
+      - export AWS_DEFAULT_REGION=us-east-1 # Đặt biến môi trường
   build:
     commands:
       - echo "Checking template syntax with cfn-lint"
@@ -18,6 +19,17 @@ phases:
       - taskcat package
       - echo "Running taskcat test run"
       - taskcat test run
+  post_build:
+    commands:
+      - echo "Uploading templates to S3"
+      - aws s3 cp templates/vpc-cfn.yaml s3://lab02-group18-bucket/templates/vpc-cfn.yaml
+      - aws s3 cp templates/nat-cfn.yaml s3://lab02-group18-bucket/templates/nat-cfn.yaml
+      - aws s3 cp templates/ec2-cfn.yaml s3://lab02-group18-bucket/templates/ec2-cfn.yaml
+      - aws s3 cp templates/rt-cfn.yaml s3://lab02-group18-bucket/templates/rt-cfn.yaml
+      - aws s3 cp templates/sg-cfn.yaml s3://lab02-group18-bucket/templates/sg-cfn.yaml
+      - aws s3 cp main-cfn.yaml s3://lab02-group18-bucket/main-cfn.yaml
+      - echo "Deploying CloudFormation stack"
+      - aws cloudformation deploy --template-file main-cfn.yaml --stack-name lab02-group18-main --region us-east-1 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 artifacts:
   files:
     - "**/*"

@@ -1,14 +1,15 @@
 project:
-  name: lab02-cloudformation-validation
-  owner: FhuAnn
+  name: "lab02-cloudformation-validation"
+  owner: cloud_user
   regions:
-    - ap-southeast-1
-
+    - us-east-1
+  s3_bucket: lab02-group18-bucket
 tests:
   main-stack-test:
     template: main-cfn.yaml
     regions:
-      - ap-southeast-1
+      - us-east-1
     parameters:
-      KeyName: lab02-keypair-group18
+      KeyName: lab02-group18-keypair
       AllowedSSHIP: 0.0.0.0/0
+      TempBucketFolder: lab02-cloudformation-validation/

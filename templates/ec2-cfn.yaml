@@ -19,7 +19,7 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      ImageId: ami-069cb3204f7a90763 # Ubuntu 24.04 AMI in ap-southeast-1
+      ImageId: ami-0731becbf832f281e # Ubuntu 24.04 AMI in ap-southeast-1
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"

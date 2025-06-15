@@ -3,10 +3,10 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: taskcat-pipeline
-      RoleArn: arn:aws:iam::072461344223:role/CodePipelineServiceRole
+      RoleArn: arn:aws:iam::654654274227:role/CodePipelineServiceRole
       ArtifactStore:
         Type: S3
-        Location: an-ho-bucket
+        Location: lab02-group18-bucket
       Stages:
         - Name: Source
           Actions:
@@ -14,13 +14,11 @@ Resources:
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: CodeStarSourceConnection
+                Provider: CodeCommit
                 Version: "1"
               Configuration:
-                ConnectionArn: arn:aws:codeconnections:ap-southeast-1:072461344223:connection/c0c2b49c-b351-4b11-93bc-3db614baa298
-                FullRepositoryId: FhuAnn/NT548-Practice02-Group18-P2-CloudFormation-CodePipeline
-                BranchName: main
-                DetectChanges: true
+                RepositoryName: NT548-Practice02-Group18-P2-CloudFormation-CodePipeline-hello
+                BranchName: master
               OutputArtifacts:
                 - Name: SourceArtifact
         - Name: Build

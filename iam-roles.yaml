@@ -24,6 +24,8 @@ Resources:
                   - s3:DeleteObject
                   - s3:DeleteBucket
                   - s3:PutBucketPolicy
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
                   - cloudformation:*
                   - ec2:*
                   - logs:*
@@ -54,10 +56,19 @@ Resources:
                 Action:
                   - s3:*
                   - codebuild:*
-                  - codestar-connections:*
+                  - codecommit:GitPull
+                  - codecommit:GitPush
+                  - codecommit:GetRepository
+                  - codecommit:ListBranches
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetDifferences
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
                   - cloudformation:*
                   - iam:PassRole
                 Resource: "*"
+
 Outputs:
   CodeBuildRoleArn:
     Value: !GetAtt CodeBuildServiceRole.Arn

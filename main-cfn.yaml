@@ -10,7 +10,7 @@ Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
-    Default: lab02-keypair-group18
+    Default: lab02-group18-keypair # Change to your key pair name
 
   InstanceType:
     Description: EC2 instance type
@@ -21,18 +21,23 @@ Parameters:
       - t2.small
       - t2.medium
 
+  SubTemplatePath:
+    Type: String
+    Default: ""
+    Description: Folder store temp templates
+
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/vpc-cfn.yaml
+      TemplateURL: !Sub https://lab02-group18-bucket.s3.us-east-1.amazonaws.com/${SubTemplatePath}templates/vpc-cfn.yaml
       TimeoutInMinutes: 10
 
   NATStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: VPCStack
     Properties:
-      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/nat-cfn.yaml
+      TemplateURL: !Sub https://lab02-group18-bucket.s3.us-east-1.amazonaws.com/lab02-cloudformation-validation/${SubTemplatePath}templates/nat-cfn.yaml
       TimeoutInMinutes: 10
 
   RouteTablesStack:
@@ -41,14 +46,14 @@ Resources:
       - VPCStack
       - NATStack
     Properties:
-      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/rt-cfn.yaml
+      TemplateURL: !Sub https://lab02-group18-bucket.s3.us-east-1.amazonaws.com/lab02-cloudformation-validation/${SubTemplatePath}templates/rt-cfn.yaml
       TimeoutInMinutes: 10
 
   SecurityGroupsStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: VPCStack
     Properties:
-      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/sg-cfn.yaml
+      TemplateURL: !Sub https://lab02-group18-bucket.s3.us-east-1.amazonaws.com/lab02-cloudformation-validation/${SubTemplatePath}templates/sg-cfn.yaml
       TimeoutInMinutes: 10
       Parameters:
         AllowedSSHIP: !Ref AllowedSSHIP
@@ -60,7 +65,7 @@ Resources:
       - RouteTablesStack
       - SecurityGroupsStack
     Properties:
-      TemplateURL: https://an-ho-bucket.s3.ap-southeast-1.amazonaws.com/templates/ec2-cfn.yaml
+      TemplateURL: !Sub https://lab02-group18-bucket.s3.us-east-1.amazonaws.com/lab02-cloudformation-validation/${SubTemplatePath}templates/ec2-cfn.yaml
       TimeoutInMinutes: 10
       Parameters:
         KeyName: !Ref KeyName

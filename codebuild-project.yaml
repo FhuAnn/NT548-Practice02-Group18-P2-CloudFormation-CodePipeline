@@ -11,6 +11,11 @@ Resources:
         Image: aws/codebuild/standard:7.0
         ComputeType: BUILD_GENERAL1_SMALL
         PrivilegedMode: true
-      ServiceRole: arn:aws:iam::072461344223:role/CodeBuildServiceRole
+        EnvironmentVariables:
+          - Name: AWS_REGION
+            Value: us-east-1
+          - Name: AWS_DEFAULT_REGION
+            Value: us-east-1
+      ServiceRole: arn:aws:iam::654654274227:role/CodeBuildServiceRole
       Artifacts:
         Type: CODEPIPELINE
